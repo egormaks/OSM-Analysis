@@ -162,6 +162,36 @@ namespace OSM_Analysis
         public String append(String parent, String child)
         {
             return parent + "&" + child;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
     }
 }
