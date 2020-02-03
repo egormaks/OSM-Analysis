@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections;
-using RestSharp;
+﻿using RestSharp;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Script.Serialization;
 using System.Data.SqlClient;
-using System.Data;
 
 namespace OSM_Analysis
 {
@@ -33,7 +27,7 @@ namespace OSM_Analysis
             // get bing coords
 
 
-            //insertCoordinate(bingCoordinates[0].lat,bingCoordinates[0].lon);
+            insertCoordinate(bingCoordinates[0].lat, bingCoordinates[0].lon);
 
 
             // Process OSM request
@@ -45,7 +39,7 @@ namespace OSM_Analysis
             // get osm coords
 
             OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(bingJson);
-           // bingCoordinates = osmObj.getBingCoordinates();
+            // bingCoordinates = osmObj.getBingCoordinates();
 
 
             // TODO: Process Google API request
@@ -66,10 +60,10 @@ namespace OSM_Analysis
             avoid.Add(ToAvoid.minimizeTolls);
             message.SetAvoid(avoid);
 
-            return message.GenerateRequest(); 
+            return message.GenerateRequest();
 
-           // var client = new RestClient("https://api-mapper.clicksend.com/http/v2/send.php?method=http&username=harnidhk&key=B1EF90CF-7A07-AB43-2FB4-A728AEBE58C6&to=+1");
-           // var execute = client.Execute(new RestRequest());
+            // var client = new RestClient("https://api-mapper.clicksend.com/http/v2/send.php?method=http&username=harnidhk&key=B1EF90CF-7A07-AB43-2FB4-A728AEBE58C6&to=+1");
+            // var execute = client.Execute(new RestRequest());
         }
 
         private static String getOsmURL()
@@ -82,9 +76,9 @@ namespace OSM_Analysis
 
         private static String getJsonResponse(String theStr)
         {
-             var client = new RestClient(theStr);
-             var execute = client.Execute(new RestRequest());
-             return execute.Content;
+            var client = new RestClient(theStr);
+            var execute = client.Execute(new RestRequest());
+            return execute.Content;
         }
 
         private static void insertDBCommand(string command)
@@ -102,12 +96,12 @@ namespace OSM_Analysis
                     myConnection.Close();
                 }
 
-                
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Something went wrong with the database connection/querry");
-               
+
 
             }
 
