@@ -17,9 +17,9 @@ namespace OSM_Analysis
             public string statusDescription { get; set; }
             public string traceId { get; set; }
 
-        public ArrayList getBingCoordinates()
+        public List<Coordinates> getBingCoordinates()
         {
-            ArrayList allCoordinates = new ArrayList();
+            List<Coordinates> allCoordinates = new List<Coordinates>();
             Routeleg routeLegs = this.resourceSets[0].resources[0].routeLegs[0];
 
             Coordinates start = new Coordinates(routeLegs.actualStart.coordinates, 1);

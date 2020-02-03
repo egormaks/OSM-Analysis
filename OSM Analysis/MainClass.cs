@@ -6,15 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.Data.SqlClient;
+using System.Data;
 
 namespace OSM_Analysis
 {
     class MainClass
     {
+        private static string area = "Seattle";
         private static readonly String from = "Seattle";
         private static readonly String to = "Tacoma";
-        private static ArrayList bingCoordinates;
-        private static ArrayList osmCoordinates;
+        private static List<Coordinates> bingCoordinates;
+        private static List<Coordinates> osmCoordinates;
+        private static string conStr = "Data Source=DESKTOP-V8S66SP;Initial Catalog=BingMaps;Integrated Security=True";
 
         public static void Main(string[] args)
         {
@@ -28,6 +32,8 @@ namespace OSM_Analysis
             // TODO: GSON equiv in C#?
             // get bing coords
 
+
+            //insertCoordinate(bingCoordinates[0].lat,bingCoordinates[0].lon);
 
 
             // Process OSM request
@@ -79,6 +85,50 @@ namespace OSM_Analysis
              var client = new RestClient(theStr);
              var execute = client.Execute(new RestRequest());
              return execute.Content;
+        }
+
+        private static void insertDBCommand(string command)
+        {
+            try
+            {
+                string Command = command;
+                using (SqlConnection myConnection = new SqlConnection(conStr))
+                {
+                    myConnection.Open();
+                    SqlCommand myCommand = new SqlCommand(Command, myConnection);
+                    myCommand.ExecuteNonQuery();
+
+                    // is it necessary???
+                    myConnection.Close();
+                }
+
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong with the database connection/querry");
+               
+
+            }
+
+        }
+
+
+        private static void insertCoordinate(double lat, double lon)
+        {
+            String query = "INSERT INTO COORDINATES" +
+                    "([CITY]\n" +
+                    ",[Lat]\n" +
+                    ",[Long]\n" +
+                    ",[Priority])\n" +
+                    "VALUES\n" +
+                    "('" + area +
+                    "'," + lat +
+                    "," + lon +
+                    "," + 1 + ")";
+
+            insertDBCommand(query);
+
         }
 
 
