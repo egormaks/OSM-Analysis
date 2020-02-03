@@ -48,12 +48,12 @@ namespace OSM_Analysis
                    min = double.Parse(dr["DISTANCE"].ToString());
                 }
 
-                return 0;
+                return min;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Something went wrong with the database connection/querry");
-                return 0;
+                return -1;
 
             }
         }
