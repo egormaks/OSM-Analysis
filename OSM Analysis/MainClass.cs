@@ -20,10 +20,10 @@ namespace OSM_Analysis
         {
             // Process Bing request           
             String bingURL = getBingURL();
-            String json = getJsonResponse(bingURL);
+            String bingJson = getJsonResponse(bingURL);
             //parse the json response
-            BingApiResponse obj = Newtonsoft.Json.JsonConvert.DeserializeObject<BingApiResponse>(json);
-            bingCoordinates = obj.getBingCoordinates();
+            BingApiResponse bingObj = Newtonsoft.Json.JsonConvert.DeserializeObject<BingApiResponse>(bingJson);
+            bingCoordinates = bingObj.getBingCoordinates();
 
             // TODO: GSON equiv in C#?
             // get bing coords
@@ -33,16 +33,19 @@ namespace OSM_Analysis
             // Process OSM request
 
             String osmURL = getOsmURL();
-               // String json = getJsonResponse(osmURL);
-                // TODO: GSON equiv in C#?
-                // get osm coords
-            
+            String osmJson = getJsonResponse(osmURL);
+
+            // TODO: GSON equiv in C#?
+            // get osm coords
+
+            OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(bingJson);
+           // bingCoordinates = osmObj.getBingCoordinates();
 
 
             // TODO: Process Google API request
-            
 
-            
+
+
         }
 
         private static String getBingURL()
@@ -65,7 +68,10 @@ namespace OSM_Analysis
 
         private static String getOsmURL()
         {
-            return null;
+            OsmRequestMessage message = new OsmRequestMessage();
+            message.setFrom((Coordinates)bingCoordinates[0]);
+            message.setTo((Coordinates)bingCoordinates[bingCoordinates.Count - 1]);
+            return message.generateRequest();
         }
 
         private static String getJsonResponse(String theStr)

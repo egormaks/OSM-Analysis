@@ -8,9 +8,9 @@ namespace OSM_Analysis
 {
     class Coordinates
     {
-        private double lat;
-        private double lon;
-        private int routeID;
+        public double lat { get; set; }
+        public double lon { get; set; }
+        public int routeID { get; set; }
         public Coordinates(double[] coordinates, int routeId)
         {
             this.lat = coordinates[0];

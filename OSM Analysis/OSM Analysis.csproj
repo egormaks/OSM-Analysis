@@ -41,10 +41,9 @@
     <Compile Include="BingApiResponse.cs" />
     <Compile Include="BingRequestMessage.cs" />
     <Compile Include="Coordinates.cs" />
-    <Compile Include="JavaApiResponse.cs" />
-    <Compile Include="JavaRequestMessage.cs" />
     <Compile Include="MainClass.cs" />
     <Compile Include="OsmApiResponse.cs" />
+    <Compile Include="OsmRequestMessage.cs" />
     <Compile Include="XYPlotter.cs" />
   </ItemGroup>
   <ItemGroup>
