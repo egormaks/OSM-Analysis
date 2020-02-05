@@ -39,13 +39,20 @@ namespace OSM_Analysis
             // get osm coords
 
             OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(bingJson);
-           // bingCoordinates = osmObj.getBingCoordinates();
+            // bingCoordinates = osmObj.getBingCoordinates();
 
 
             // TODO: Process Google API request
-
-
-
+            GoogleApiResponse jar = new GoogleApiResponse();
+            List<Coordinates> route = new List<Coordinates>();
+            double[] startCoords = { 47.4642007, -122.2664857 };
+            double[] endCoords = { 47.2527802, -122.4442681 };
+            route.Add(new Coordinates(startCoords, 0));
+            route.Add(new Coordinates(endCoords, 0));
+            jar.setRouteCoords(route);
+            jar.setOutputFormat(OutputFormats.json);
+            string request = jar.generateGRequest();
+            Console.WriteLine(request);
         }
 
         private static String getBingURL()

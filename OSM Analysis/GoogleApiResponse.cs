@@ -27,7 +27,7 @@ namespace OSM_Analysis
 		ferries,
 		indoor
 	}
-	class JavaApiResponse
+	class GoogleApiResponse
 	{
 		private static readonly String API_KEY = "AIzaSyAioRxicWzq2ZrYzjjhejXp0QMW9FjdItA";
 		private static readonly String HEADER = "https://maps.googleapis.com/maps/api/directions/";
@@ -40,19 +40,6 @@ namespace OSM_Analysis
 		private Coordinates myDestCoordinates;
 		private List<ToAvoidGM> myAvoid;
 
-		public static void main(string[] args)
-		{
-			JavaApiResponse jar = new JavaApiResponse();
-			List<Coordinates> route = new List<Coordinates>();
-			double[] startCoords = { 47.4642007, -122.2664857 };
-			double[] endCoords = { 47.2527802, -122.4442681 };
-			route.Add(new Coordinates(startCoords, 0));
-			route.Add(new Coordinates(endCoords, 0));
-			jar.setRouteCoords(route);
-			jar.setOutputFormat(OutputFormats.json);
-			string request = jar.generateGRequest();
-			Console.WriteLine(request);
-		}
 		public String generateGRequest()
 		{
 			string url = "";
@@ -61,7 +48,7 @@ namespace OSM_Analysis
 			url += myFormat.ToString() + "?";
 			//		sb.append("origin=" + myOrigin + "&");
 			//		sb.append("destination=" + myDest);
-			url += "origin=" + coordinateToString(myOriginCoordinates);
+			url += "origin=" + coordinateToString(myOriginCoordinates) + "&";
 			url += "destination=" + coordinateToString(myDestCoordinates);
 			if (myAvoid != null && !(myAvoid.Count() == 0))
 			{
