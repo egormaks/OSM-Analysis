@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections;
-using RestSharp;
+﻿using RestSharp;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Script.Serialization;
+using System.Data.SqlClient;
 
 namespace OSM_Analysis
 {
     class MainClass
     {
+        private static string area = "Seattle";
         private static readonly String from = "Seattle";
         private static readonly String to = "Tacoma";
-        private static ArrayList bingCoordinates;
-        private static ArrayList osmCoordinates;
+        private static List<Coordinates> bingCoordinates;
+        private static List<Coordinates> osmCoordinates;
+        private static string conStr = "Data Source=DESKTOP-V8S66SP;Initial Catalog=BingMaps;Integrated Security=True";
 
         public static void Main(string[] args)
         {
@@ -28,6 +26,8 @@ namespace OSM_Analysis
             // TODO: GSON equiv in C#?
             // get bing coords
 
+
+            insertCoordinate(bingCoordinates[0].lat, bingCoordinates[0].lon);
 
 
             // Process OSM request
@@ -67,10 +67,10 @@ namespace OSM_Analysis
             avoid.Add(ToAvoid.minimizeTolls);
             message.SetAvoid(avoid);
 
-            return message.GenerateRequest(); 
+            return message.GenerateRequest();
 
-           // var client = new RestClient("https://api-mapper.clicksend.com/http/v2/send.php?method=http&username=harnidhk&key=B1EF90CF-7A07-AB43-2FB4-A728AEBE58C6&to=+1");
-           // var execute = client.Execute(new RestRequest());
+            // var client = new RestClient("https://api-mapper.clicksend.com/http/v2/send.php?method=http&username=harnidhk&key=B1EF90CF-7A07-AB43-2FB4-A728AEBE58C6&to=+1");
+            // var execute = client.Execute(new RestRequest());
         }
 
         private static String getOsmURL()
@@ -83,9 +83,53 @@ namespace OSM_Analysis
 
         private static String getJsonResponse(String theStr)
         {
-             var client = new RestClient(theStr);
-             var execute = client.Execute(new RestRequest());
-             return execute.Content;
+            var client = new RestClient(theStr);
+            var execute = client.Execute(new RestRequest());
+            return execute.Content;
+        }
+
+        private static void insertDBCommand(string command)
+        {
+            try
+            {
+                string Command = command;
+                using (SqlConnection myConnection = new SqlConnection(conStr))
+                {
+                    myConnection.Open();
+                    SqlCommand myCommand = new SqlCommand(Command, myConnection);
+                    myCommand.ExecuteNonQuery();
+
+                    // is it necessary???
+                    myConnection.Close();
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong with the database connection/querry");
+
+
+            }
+
+        }
+
+
+        private static void insertCoordinate(double lat, double lon)
+        {
+            String query = "INSERT INTO COORDINATES" +
+                    "([CITY]\n" +
+                    ",[Lat]\n" +
+                    ",[Long]\n" +
+                    ",[Priority])\n" +
+                    "VALUES\n" +
+                    "('" + area +
+                    "'," + lat +
+                    "," + lon +
+                    "," + 1 + ")";
+
+            insertDBCommand(query);
+
         }
 
 
