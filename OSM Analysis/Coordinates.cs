@@ -1,6 +1,6 @@
 ﻿namespace OSM_Analysis
 {
-    class Coordinates
+    public class Coordinates
     {
         public double lat { get; set; }
         public double lon { get; set; }

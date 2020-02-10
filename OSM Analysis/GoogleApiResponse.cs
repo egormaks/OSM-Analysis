@@ -26,117 +26,77 @@ namespace OSM_Analysis
         indoor
     }
     class GoogleApiResponse
-    {
+    {  
         private static readonly String API_KEY = "AIzaSyAioRxicWzq2ZrYzjjhejXp0QMW9FjdItA";
         private static readonly String HEADER = "https://maps.googleapis.com/maps/api/directions/";
 
-        enum ToAvoidGM
+        private TransModesGM myMode;
+        private OutputFormats myFormat;
+        //	private String myOrigin;
+        private Coordinates myOriginCoordinates;
+        //	private String myDest;
+        private Coordinates myDestCoordinates;
+        private List<ToAvoidGM> myAvoid;
+
+        public String generateGRequest()
         {
-            tolls,
-            highways,
-            ferries,
-            indoor
+            string url = "";
+
+            url += HEADER;
+            url += myFormat.ToString() + "?";
+            //		sb.append("origin=" + myOrigin + "&");
+            //		sb.append("destination=" + myDest);
+            url += "origin=" + coordinateToString(myOriginCoordinates) + "&";
+            url += "destination=" + coordinateToString(myDestCoordinates);
+            if (myAvoid != null && !(myAvoid.Count() == 0))
+            {
+                url += "?";
+                foreach (ToAvoidGM av in myAvoid)
+                {
+                    url += av.ToString() + "|";
+                }
+                url = url.Substring(0, url.Length - 1);
+            }
+            if (myMode != null)
+            {
+                url += "?" + myMode.ToString();
+            }
+            url += "&key=" + API_KEY;
+            return url;
         }
-        class GoogleApiResponse
+        
+
+        private string coordinateToString(Coordinates c)
         {
-            private static readonly String API_KEY = "AIzaSyAioRxicWzq2ZrYzjjhejXp0QMW9FjdItA";
-            private static readonly String HEADER = "https://maps.googleapis.com/maps/api/directions/";
+            return c.lat + "," + c.lon;
+        }
 
-            private TransModesGM myMode;
-            private OutputFormats myFormat;
-            //	private String myOrigin;
-            private Coordinates myOriginCoordinates;
-            //	private String myDest;
-            private Coordinates myDestCoordinates;
-            private List<ToAvoidGM> myAvoid;
+        public void setRouteCoords(List<Coordinates> theRoute)
+        {
+            myOriginCoordinates = theRoute[0];
+            myDestCoordinates = theRoute[1];
+        }
 
-            public String generateGRequest()
-            {
-                string url = "";
+        public void setAvoid(List<ToAvoidGM> toAvoid)
+        {
+            this.myAvoid = toAvoid;
+        }
 
-                url += HEADER;
-                url += myFormat.ToString() + "?";
-                //		sb.append("origin=" + myOrigin + "&");
-                //		sb.append("destination=" + myDest);
-                url += "origin=" + coordinateToString(myOriginCoordinates) + "&";
-                url += "destination=" + coordinateToString(myDestCoordinates);
-                if (myAvoid != null && !(myAvoid.Count() == 0))
-                {
-                    url += "?";
-                    foreach (ToAvoidGM av in myAvoid)
-                    {
-                        url += av.ToString() + "|";
-                    }
-                    url = url.Substring(0, url.Length - 1);
-                }
-                if (myMode != null)
-                {
-                    url += "?" + myMode.ToString();
-                }
-                url += "&key=" + API_KEY;
-                return url;
-            }
+        public void setOutputFormat(OutputFormats theFormat)
+        {
+            this.myFormat = theFormat;
+        }
 
-  
-            public String generateGRequest()
-            {
-                string url = "";
+        private void setMode(TransModesGM theMode)
+        {
+            this.myMode = theMode;
+        }
 
-                url += HEADER;
-                url += myFormat.ToString() + "?";
-                //		sb.append("origin=" + myOrigin + "&");
-                //		sb.append("destination=" + myDest);
-                url += "origin=" + coordinateToString(myOriginCoordinates);
-                url += "destination=" + coordinateToString(myDestCoordinates);
-                if (myAvoid != null && !(myAvoid.Count() == 0))
-                {
-                    url += "?";
-                    foreach (ToAvoidGM av in myAvoid)
-                    {
-                        url += av.ToString() + "|";
-                    }
-                    url = url.Substring(0, url.Length - 1);
-                }
-                if (myMode != null)
-                {
-                    url += "?" + myMode.ToString();
-                }
-                url += "&key=" + API_KEY;
-                return url;
-            }
-
-            private string coordinateToString(Coordinates c)
-            {
-                return c.lat + "," + c.lon;
-            }
-
-            public void setRouteCoords(List<Coordinates> theRoute)
-            {
-                myOriginCoordinates = theRoute[0];
-                myDestCoordinates = theRoute[1];
-            }
-
-            public void setAvoid(List<ToAvoidGM> toAvoid)
-            {
-                this.myAvoid = toAvoid;
-            }
-
-            public void setOutputFormat(OutputFormats theFormat)
-            {
-                this.myFormat = theFormat;
-            }
-
-            private void setMode(TransModesGM theMode)
-            {
-                this.myMode = theMode;
-            }
-
-            private static String getJsonResponse(String theStr)
-            {
-                var client = new RestClient(theStr);
-                var execute = client.Execute(new RestRequest());
-                return execute.Content;
-            }
+        private static String getJsonResponse(String theStr)
+        {
+            var client = new RestClient(theStr);
+            var execute = client.Execute(new RestRequest());
+            return execute.Content;
         }
     }
 }

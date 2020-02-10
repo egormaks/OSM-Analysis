@@ -23,9 +23,7 @@ namespace OSM_Analysis
             BingApiResponse bingObj = Newtonsoft.Json.JsonConvert.DeserializeObject<BingApiResponse>(bingJson);
             bingCoordinates = bingObj.getBingCoordinates();
 
-            // TODO: GSON equiv in C#?
             // get bing coords
-
 
             insertCoordinate(bingCoordinates[0].lat, bingCoordinates[0].lon);
 
@@ -34,12 +32,12 @@ namespace OSM_Analysis
 
             String osmURL = getOsmURL();
             String osmJson = getJsonResponse(osmURL);
+            OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(osmJson);
+            osmCoordinates = osmObj.getOsmCoordinates();
 
-            // TODO: GSON equiv in C#?
-            // get osm coords
+            
 
-            OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(bingJson);
-            // bingCoordinates = osmObj.getBingCoordinates();
+   
 
 
             // TODO: Process Google API request

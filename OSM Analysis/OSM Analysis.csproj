@@ -38,6 +38,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analysis.cs" />
+    <Compile Include="Area.cs" />
+    <Compile Include="AreaDeflection.cs" />
     <Compile Include="BingApiResponse.cs" />
     <Compile Include="BingRequestMessage.cs" />
     <Compile Include="Coordinates.cs" />
