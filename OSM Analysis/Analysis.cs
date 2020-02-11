@@ -7,64 +7,30 @@ namespace OSM_Analysis
 {
     class Analysis
     {
-        private static Dictionary<Coordinates, AreaDeflection> areaHeatmap = 
-            new Dictionary<Coordinates, AreaDeflection>();
-        private static string conStr = "Data Source=DESKTOP-V8S66SP;Initial Catalog=BingMaps;Integrated Security=True";
-
+        private static Dictionary<int, AreaDeflection> AreaDefMap = new Dictionary<int, AreaDeflection>();
+        private static Dictionary<Coordinates, AreaDeflection> areaHeatmap = new Dictionary<Coordinates, AreaDeflection>();
 
         private static double getLeastDistanceFromSetOfLinesUsingSql(Coordinates osmCoordinate, List<Coordinates> bingCoordinates)
         {
-             string selectTest = "DECLARE @g geography; SET @g = geography::STGeomFromText('LINESTRING(<CORDINATE_STRING>)', 4326); " +
-               "DECLARE @source geography = 'POINT(<OSM_POINT>)';  SELECT @source.STDistance(@g) as DISTANCE;";
-
-             String bingString = "";
-
-            foreach(Coordinates cor in bingCoordinates)
+            String query = Properties.Settings.Default.MinDistanceQuery;
+            String bingString = "";
+            foreach (Coordinates cor in bingCoordinates)
             {
                 bingString += cor.getLon() + " " + cor.getLat() + ",";
             }
-               
-            
             bingString = bingString.TrimEnd(','); // remove last comma
 
-            selectTest = selectTest.Replace("<CORDINATE_STRING>", bingString);
-            selectTest = selectTest.Replace("<OSM_POINT>", osmCoordinate.getLon() + " " + osmCoordinate.getLat());
+            query = query.Replace("<CORDINATE_STRING>", bingString);
+            query = query.Replace("<OSM_POINT>", osmCoordinate.getLon() + " " + osmCoordinate.getLat());
 
-            try
-            {
-                //We conneect to the DB using the connection string
-                SqlConnection conn = new SqlConnection(conStr);
-                              
-                SqlCommand cmd = new SqlCommand(selectTest, conn);
-
-                SqlDataAdapter da = new SqlDataAdapter(cmd);
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-
-                double min = 0;
-                
-                //Loop through every row of the querry
-                foreach (DataRow dr in dt.Rows)
-                {
-                   min = double.Parse(dr["DISTANCE"].ToString());
-                }
-
-                return min;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Something went wrong with the database connection/querry");
-                return -1;
-
-            }
+            return ConnectionUtils.ExecuteJdbcSingleOutputQuery(query);
         }
 
-        private static void updateHeatmap(Dictionary<Coordinates, double> osmDistances)
+        private static void UpdateHeatmap(Dictionary<Coordinates, double> osmDistances)
         {
-            /*
-            if (osmDistances.Count == 0)
+            if (areaHeatmap.Count == 0)
             {
-                areaHeatmap = intializeAreaHeatmap(Main.area);
+                areaHeatmap = IntializeAreaHeatmap(MainClass.area);
             }
 
             foreach (KeyValuePair<Coordinates, double> dist 
@@ -94,11 +60,158 @@ namespace OSM_Analysis
                 }
             }
             Console.WriteLine("   Updated heatmap using " + osmDistances.Count + " points");
-            updateheatmapTable();
-            */
+            //updateheatmapTable();
         }
 
-        private static void updateheatmapTable()
+        internal static void doAnalysis(List<Coordinates> bingCoordinates, List<Coordinates> osmCoordinates)
+        {
+            // each pair of adjacent points in Bing are connected through a line and the minimum distance is calculated for each point on OSM
+            GetDeflectionBasedOnLineSegments(bingCoordinates, osmCoordinates);
+        }
+
+        //for each osm point im checking the minimum distance to the bing curve to make sure it is less than a specified tolerance, using SQL
+        private static void GetDeflectionBasedOnLineSegments(List<Coordinates> bingCoordinates, List<Coordinates> osmCoordinates)
+        {
+            Dictionary<Coordinates, Double> osmDistancesMap = new Dictionary<Coordinates, Double>();
+            int count = 0;
+            foreach (Coordinates osmCoordinate in osmCoordinates)
+            {
+                count++;
+                double dist1 = getLeastDistanceFromSetOfLinesUsingSql(osmCoordinate, bingCoordinates);
+
+                //if its less than the threshold, we add it to osmDistance arraylist
+                if (dist1 < Properties.Settings.Default.tolerance)
+                {
+                    osmDistancesMap.Add(osmCoordinate, dist1);
+                }
+                else
+                {
+                    //      System.out.println("deflection for " + count + "th element " + osmCoordinate.getLat() + ", " + osmCoordinate.getLat() + " with distance " + dist1 + " is skipped");
+                }
+            }
+            UpdateAvgDeflection(osmDistancesMap.Values);
+            UpdateHeatmap(osmDistancesMap);
+        }
+
+        private static void UpdateAvgDeflection(Dictionary<Coordinates, double>.ValueCollection osmDistances)
+        {
+            if (AreaDefMap.Count == 0)
+            {
+                AreaDefMap = IntializeAreaDef(MainClass.area);
+            }
+
+            foreach (Double dist in osmDistances)
+            {
+                int rangeUpper = (int)Math.Ceiling(dist / 5) * 5;
+                if (AreaDefMap.ContainsKey(rangeUpper))
+                {
+                    AreaDeflection avgDef = AreaDefMap[rangeUpper];
+                    Int32 noOfPoints = avgDef.getNoOfPoints();
+                    Double avgDeflection = avgDef.getAvgDeflection();
+                    avgDeflection = (avgDeflection * noOfPoints + dist) / (noOfPoints + 1);
+                    avgDef.setAvgDeflection(avgDeflection);
+                    avgDef.setNoOfPoints(noOfPoints + 1);
+                    AreaDefMap[rangeUpper] = avgDef;
+                }
+                else
+                {
+                    AreaDeflection avgDef = new AreaDeflection(new Area(MainClass.area, null, null), rangeUpper, null, dist, 1);
+                    AreaDefMap.Add(rangeUpper, avgDef);
+                }
+            }
+            Console.WriteLine("   Updated average deflection using " + osmDistances.Count + " points");
+            UpdateAvgDefTable();
+        }
+
+        private static void UpdateAvgDefTable()
+        {
+            String city = MainClass.area;
+            String clearQuery = Properties.Settings.Default.ClearPrevAreaDefEntries;
+            clearQuery = clearQuery.Replace("<CITY>", city);
+            ConnectionUtils.ExecuteJdbcQuery(clearQuery);
+
+            String insertQuery = "";
+            List<String> queries = new List<String>();
+
+            List<int> sortedKeys =
+                    new List<int>(AreaDefMap.Keys);
+            sortedKeys.Sort();
+
+            // Display the TreeMap which is naturally sorted
+            foreach (int x in sortedKeys)
+            {
+                AreaDeflection areaDeflection = AreaDefMap[x];
+                insertQuery = Properties.Settings.Default.AreaDefInsertQuery;
+                insertQuery = insertQuery.Replace("<CITY>", city);
+                insertQuery = insertQuery.Replace("<STATE>", "");
+                insertQuery = insertQuery.Replace("<COUNTRY>", "");
+                insertQuery = insertQuery.Replace("<MAX_DEF_RANGE>", areaDeflection.getRangeUpper().ToString());
+                insertQuery = insertQuery.Replace("<AVG_DEFLECTION>", areaDeflection.getAvgDeflection().ToString());
+                insertQuery = insertQuery.Replace("<DATASET_PTS_COUNT>", areaDeflection.getNoOfPoints().ToString());
+                queries.Add(insertQuery);
+            }
+            ConnectionUtils.ExecuteJdbcBatchQuery(queries);
+        }
+
+        private static Dictionary<int, AreaDeflection> IntializeAreaDef(String areaStr)
+        {
+            Dictionary<int, AreaDeflection> areaDefMap = new Dictionary<int, AreaDeflection>();
+            Area area = new Area(areaStr);
+
+            String query = Properties.Settings.Default.AreaDefQuery;
+            if (area.getCity() != null)
+            {
+                query = query.Replace("<CITY>", area.getCity());
+            }
+            else
+            {
+                query = query.Replace("CITY = '<CITY>'", "");
+            }
+            if (area.getState() != null)
+            {
+                query = query.Replace("<STATE>", area.getState());
+            }
+            else
+            {
+                query = query.Replace(" and STATE = '<STATE>'", "");
+            }
+            if (area.getCountry() != null)
+            {
+                query = query.Replace("<COUNTRY>", area.getCountry());
+            }
+            else
+            {
+                query = query.Replace(" and COUNTRY = '<COUNTRY>'", "");
+            }
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(Properties.Settings.Default.jdbcUrl))
+                {
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int maxDefRange = reader.GetInt32(reader.GetOrdinal("MAX_DEF_RANGE"));
+                                areaDefMap.Add(maxDefRange, new AreaDeflection(new Area(reader.GetString(reader.GetOrdinal("CITY")), reader.GetString(reader.GetOrdinal("STATE")),
+                                        reader.GetString(reader.GetOrdinal("COUNTRY"))), maxDefRange, null, (double) reader.GetDecimal(reader.GetOrdinal("AVG_DEFLECTION")), reader.GetInt32(reader.GetOrdinal("DATASET_PTS_COUNT"))));
+                            }
+                        }
+                    }
+                    connection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong with the database connection/query" + ex);
+                Console.WriteLine("Could not get Coordinates for " + area);
+            }
+            return areaDefMap;
+        }
+
+        private static void UpdateheatmapTable()
         {
             /*
             String city = Main.area;
@@ -127,7 +240,7 @@ namespace OSM_Analysis
             */
         }
 
-        private static Dictionary<Coordinates, AreaDeflection> intializeAreaHeatmap(String areaStr)
+        private static Dictionary<Coordinates, AreaDeflection> IntializeAreaHeatmap(String areaStr)
         {
             /*
             Dictionary<Coordinates, AreaDeflection> areaHeatmap = 

@@ -10,11 +10,11 @@ namespace OSM_Analysis
     {
         private Area area;
         private int rangeUpper;
-        private int rangeLower;
+        private int? rangeLower;
         private double avgDeflection;
         private int noOfPoints;
 
-        public AreaDeflection(Area area, int rangeUpper, int rangeLower, double avgDeflection, int noOfPoints)
+        public AreaDeflection(Area area, int rangeUpper, int? rangeLower, double avgDeflection, int noOfPoints)
         {
             this.area = area;
             this.rangeUpper = rangeUpper;
@@ -43,7 +43,7 @@ namespace OSM_Analysis
             this.rangeUpper = rangeUpper;
         }
 
-        public int getRangeLower()
+        public int? getRangeLower()
         {
             return rangeLower;
         }

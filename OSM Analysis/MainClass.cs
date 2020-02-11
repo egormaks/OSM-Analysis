@@ -2,58 +2,141 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading;
 
 namespace OSM_Analysis
 {
     class MainClass
     {
-        private static string area = "Seattle";
-        private static readonly String from = "Seattle";
-        private static readonly String to = "Tacoma";
+        private static String from = "";
+        private static String to = "";
+        public static String area = "Seattle";
         private static List<Coordinates> bingCoordinates;
         private static List<Coordinates> osmCoordinates;
-        private static string conStr = "Data Source=DESKTOP-V8S66SP;Initial Catalog=BingMaps;Integrated Security=True";
 
         public static void Main(string[] args)
         {
-            // Process Bing request           
-            String bingURL = getBingURL();
-            String bingJson = getJsonResponse(bingURL);
-            //parse the json response
-            BingApiResponse bingObj = Newtonsoft.Json.JsonConvert.DeserializeObject<BingApiResponse>(bingJson);
-            bingCoordinates = bingObj.getBingCoordinates();
+            List<Coordinates> areaCoordinates = generateAreaCoordinates();
 
-            // get bing coords
+            for (int runCount = 0; runCount < Properties.Settings.Default.noOfRuns; runCount++)
+            {
+                Console.WriteLine("Processing " + (runCount + 1) + "nd route in " + area);
+                try
+                {
+                    processOneRoute(areaCoordinates);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not process " + (runCount + 1) + "th count");
+                    Console.WriteLine(e);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
 
-            insertCoordinate(bingCoordinates[0].lat, bingCoordinates[0].lon);
+        private static void processOneRoute(List<Coordinates> areaCoordinates)
+        {
+            Coordinates fromCor = null;
+            Coordinates toCor = null;
+            var rand = new Random();
 
+            while (fromCor == null
+                || fromCor.getrouteID() != null
+                )
+            {
+                fromCor = areaCoordinates[(int)(rand.NextDouble() * areaCoordinates.Count)];
+                from = fromCor.convertToString();
+            }
+
+            while (toCor == null
+                || toCor.getrouteID() != null
+                || to.Equals(from)
+                || GetDist(fromCor, toCor) < Properties.Settings.Default.fromToMinDist)
+            {
+                toCor = areaCoordinates[(int)(rand.NextDouble() * areaCoordinates.Count)];
+                to = toCor.convertToString();
+            }
+            Console.WriteLine("   From " + from + " to " + to);
+
+            // Process Bing request
+            {
+                String bingURL = GetBingURL();
+                String bingJson = GetJsonResponse(bingURL);
+                //parse the json response
+                BingApiResponse bingObj = Newtonsoft.Json.JsonConvert.DeserializeObject<BingApiResponse>(bingJson);
+                bingCoordinates = bingObj.getBingCoordinates();
+            }
 
             // Process OSM request
-
-            String osmURL = getOsmURL();
-            String osmJson = getJsonResponse(osmURL);
-            OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(osmJson);
-            osmCoordinates = osmObj.getOsmCoordinates();
-
-            
-
-   
-
+            {
+                String osmURL = GetOsmURL();
+                String osmJson = GetJsonResponse(osmURL);
+                OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(osmJson);
+                osmCoordinates = osmObj.getOsmCoordinates();
+            }
 
             // TODO: Process Google API request
-            GoogleApiResponse jar = new GoogleApiResponse();
+            {
+                //String goggleUrl = GetGoogleUrl();
+            }
+            InsertNewCordinates(areaCoordinates);
+            Analysis.doAnalysis(bingCoordinates, osmCoordinates);
+
+        }
+
+        private static void InsertNewCordinates(List<Coordinates> areaCoordinates)
+        {
+            int count = 0;
+            using (SqlConnection connection = new SqlConnection(Properties.Settings.Default.jdbcUrl))
+            {
+                connection.Open();
+                foreach (Coordinates cor in bingCoordinates)
+                {
+                    if (!areaCoordinates.Contains(cor))
+                    {
+                        InsertCoordinate(cor.getLat(), cor.getLon(), connection);
+                        areaCoordinates.Add(cor);
+                        count++;
+                    }
+                }
+
+                foreach (Coordinates cor in osmCoordinates)
+                {
+                    if (!areaCoordinates.Contains(cor))
+                    {
+                        InsertCoordinate(cor.getLat(), cor.getLon(), connection);
+                        areaCoordinates.Add(cor);
+                        count++;
+                    }
+                }
+                connection.Close();
+            }
+            Console.WriteLine("   Sucessfully inserted " + count + " new coordinates in " + area);
+        }
+
+        private static string GetGoogleUrl()
+        {
+            GoogleRequestMessage message = new GoogleRequestMessage();
             List<Coordinates> route = new List<Coordinates>();
             double[] startCoords = { 47.4642007, -122.2664857 };
             double[] endCoords = { 47.2527802, -122.4442681 };
             route.Add(new Coordinates(startCoords, 0));
             route.Add(new Coordinates(endCoords, 0));
-            jar.setRouteCoords(route);
-            jar.setOutputFormat(OutputFormats.json);
-            string request = jar.generateGRequest();
-            Console.WriteLine(request);
+            message.setRouteCoords(route);
+            message.setOutputFormat(OutputFormats.json);
+            return message.generateGRequest();
         }
 
-        private static String getBingURL()
+        private static double GetDist(Coordinates fromCor, Coordinates toCor)
+        {
+            String disQuery = Properties.Settings.Default.disQuery;
+            disQuery = disQuery.Replace("<POINT1_COR>", fromCor.getLon() + " " + fromCor.getLat());
+            disQuery = disQuery.Replace("<POINT2_COR>", toCor.getLon() + " " + toCor.getLat());
+            Double dist = ConnectionUtils.ExecuteJdbcSingleOutputQuery(disQuery);
+            return dist;
+        }
+
+        private static String GetBingURL()
         {
             BingRequestMessage message = new BingRequestMessage();
             ICollection<String> wps = new List<String>();
@@ -66,12 +149,9 @@ namespace OSM_Analysis
             message.SetAvoid(avoid);
 
             return message.GenerateRequest();
-
-            // var client = new RestClient("https://api-mapper.clicksend.com/http/v2/send.php?method=http&username=harnidhk&key=B1EF90CF-7A07-AB43-2FB4-A728AEBE58C6&to=+1");
-            // var execute = client.Execute(new RestRequest());
         }
 
-        private static String getOsmURL()
+        private static String GetOsmURL()
         {
             OsmRequestMessage message = new OsmRequestMessage();
             message.setFrom((Coordinates)bingCoordinates[0]);
@@ -79,41 +159,35 @@ namespace OSM_Analysis
             return message.generateRequest();
         }
 
-        private static String getJsonResponse(String theStr)
+        private static String GetJsonResponse(String theStr)
         {
             var client = new RestClient(theStr);
             var execute = client.Execute(new RestRequest());
             return execute.Content;
         }
 
-        private static void insertDBCommand(string command)
+        private static void InsertDBCommand(string Command)
         {
             try
             {
-                string Command = command;
-                using (SqlConnection myConnection = new SqlConnection(conStr))
+                using (SqlConnection myConnection = new SqlConnection(Properties.Settings.Default.jdbcUrl))
                 {
                     myConnection.Open();
                     SqlCommand myCommand = new SqlCommand(Command, myConnection);
                     myCommand.ExecuteNonQuery();
 
-                    // is it necessary???
                     myConnection.Close();
                 }
-
-
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something went wrong with the database connection/querry");
-
-
+                Console.WriteLine("Something went wrong with the database connection/query" + ex);
             }
 
         }
 
 
-        private static void insertCoordinate(double lat, double lon)
+        private static void InsertCoordinate(double lat, double lon, SqlConnection connection)
         {
             String query = "INSERT INTO COORDINATES" +
                     "([CITY]\n" +
@@ -125,11 +199,50 @@ namespace OSM_Analysis
                     "'," + lat +
                     "," + lon +
                     "," + 1 + ")";
-
-            insertDBCommand(query);
-
+            ConnectionUtils.ExecuteJdbcQueryUsingCon(query, connection);
         }
 
+        private static List<Coordinates> generateAreaCoordinates()
+        {
+            List<Coordinates> areaCoordinates = new List<Coordinates>();
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(Properties.Settings.Default.jdbcUrl))
+                {
+                    String query = Properties.Settings.Default.areaSelectQuery;
+                    query = query.Replace("<AREA>", area);
 
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                double lat = (double)reader.GetDecimal(reader.GetOrdinal("Lat"));
+                                double lon = (double)reader.GetDecimal(reader.GetOrdinal("Long"));
+                                int? routeID;
+                                if (reader["Priority"].GetType().Name.Equals("Int32"))
+                                {
+                                    routeID = (int)reader["Priority"];
+                                }
+                                else
+                                {
+                                    routeID = null;
+                                }
+                                areaCoordinates.Add(new Coordinates(lat, lon, routeID));
+                            }
+                        }
+                    }
+                    connection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong with the database connection/query" + ex);
+                Console.WriteLine("Could not get Coordinates for " + area);
+            }
+            return areaCoordinates;
+        }
     }
 }
