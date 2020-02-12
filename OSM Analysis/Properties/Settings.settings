@@ -53,5 +53,35 @@
   ,&lt;AVG_DEFLECTION&gt;
   ,&lt;DATASET_PTS_COUNT&gt;);</Value>
     </Setting>
+    <Setting Name="HeatmapSelectQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Select * from HEATMAP where CITY = '&lt;CITY&gt;' and STATE = '&lt;STATE&gt;' and COUNTRY = '&lt;COUNTRY&gt;' ORDER BY LAT_MAX;</Value>
+    </Setting>
+    <Setting Name="HeatMapInsertionQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">INSERT INTO [HEATMAP]
+  ([CITY]
+  ,[STATE]
+  ,[COUNTRY]
+  ,[LAT_MAX]
+  ,[LONG_MAX]
+  ,[AVG_DEFLECTION]
+  ,[DATASET_PTS_COUNT])
+  VALUES
+  (&lt;CITY&gt;
+  ,&lt;STATE&gt;
+  ,&lt;COUNTRY&gt;
+  ,&lt;LAT_MAX&gt;
+  ,&lt;LONG_MAX&gt;
+  ,&lt;AVG_DEFLECTION&gt;
+  ,&lt;DATASET_PTS_COUNT&gt;)</Value>
+    </Setting>
+    <Setting Name="ClearPrevHeatmapEntries" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DELETE from HEATMAP where CITY = '&lt;CITY&gt;';</Value>
+    </Setting>
+    <Setting Name="Setting2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">asd</Value>
+    </Setting>
+    <Setting Name="InsertCoordinateQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">INSERT INTO COORDINATES ([CITY] ,[Lat] ,[Long] ,[Priority]) VALUES ('&lt;AREA&gt;', &lt;LAT&gt;, &lt;LON&gt; , 1)</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

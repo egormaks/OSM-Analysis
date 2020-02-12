@@ -176,5 +176,70 @@ namespace OSM_Analysis.Properties {
                 this["AreaDefInsertQuery"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Select * from HEATMAP where CITY = \'<CITY>\' and STATE = \'<STATE>\' and COUNTRY = \'" +
+            "<COUNTRY>\' ORDER BY LAT_MAX;")]
+        public string HeatmapSelectQuery {
+            get {
+                return ((string)(this["HeatmapSelectQuery"]));
+            }
+            set {
+                this["HeatmapSelectQuery"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("INSERT INTO [HEATMAP]\r\n  ([CITY]\r\n  ,[STATE]\r\n  ,[COUNTRY]\r\n  ,[LAT_MAX]\r\n  ,[LON" +
+            "G_MAX]\r\n  ,[AVG_DEFLECTION]\r\n  ,[DATASET_PTS_COUNT])\r\n  VALUES\r\n  (<CITY>\r\n  ,<S" +
+            "TATE>\r\n  ,<COUNTRY>\r\n  ,<LAT_MAX>\r\n  ,<LONG_MAX>\r\n  ,<AVG_DEFLECTION>\r\n  ,<DATAS" +
+            "ET_PTS_COUNT>)")]
+        public string HeatMapInsertionQuery {
+            get {
+                return ((string)(this["HeatMapInsertionQuery"]));
+            }
+            set {
+                this["HeatMapInsertionQuery"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("DELETE from HEATMAP where CITY = \'<CITY>\';")]
+        public string ClearPrevHeatmapEntries {
+            get {
+                return ((string)(this["ClearPrevHeatmapEntries"]));
+            }
+            set {
+                this["ClearPrevHeatmapEntries"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("asd")]
+        public string Setting2 {
+            get {
+                return ((string)(this["Setting2"]));
+            }
+            set {
+                this["Setting2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("INSERT INTO COORDINATES ([CITY] ,[Lat] ,[Long] ,[Priority]) VALUES (\'<AREA>\', <LA" +
+            "T>, <LON> , 1)")]
+        public string InsertCoordinateQuery {
+            get {
+                return ((string)(this["InsertCoordinateQuery"]));
+            }
+            set {
+                this["InsertCoordinateQuery"] = value;
+            }
+        }
     }
 }

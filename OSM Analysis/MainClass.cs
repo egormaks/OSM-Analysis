@@ -71,6 +71,7 @@ namespace OSM_Analysis
             {
                 String osmURL = GetOsmURL();
                 String osmJson = GetJsonResponse(osmURL);
+                Console.WriteLine("   " + osmJson);
                 OsmApiResponse osmObj = Newtonsoft.Json.JsonConvert.DeserializeObject<OsmApiResponse>(osmJson);
                 osmCoordinates = osmObj.getOsmCoordinates();
             }
@@ -189,16 +190,10 @@ namespace OSM_Analysis
 
         private static void InsertCoordinate(double lat, double lon, SqlConnection connection)
         {
-            String query = "INSERT INTO COORDINATES" +
-                    "([CITY]\n" +
-                    ",[Lat]\n" +
-                    ",[Long]\n" +
-                    ",[Priority])\n" +
-                    "VALUES\n" +
-                    "('" + area +
-                    "'," + lat +
-                    "," + lon +
-                    "," + 1 + ")";
+            String query = Properties.Settings.Default.InsertCoordinateQuery;
+            query = query.Replace("<AREA>", area);
+            query = query.Replace("<LAT>", lat.ToString());
+            query = query.Replace("<LON>", lon.ToString());
             ConnectionUtils.ExecuteJdbcQueryUsingCon(query, connection);
         }
 

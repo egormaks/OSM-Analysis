@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 
 namespace OSM_Analysis
@@ -8,7 +7,7 @@ namespace OSM_Analysis
     class Analysis
     {
         private static Dictionary<int, AreaDeflection> AreaDefMap = new Dictionary<int, AreaDeflection>();
-        private static Dictionary<Coordinates, AreaDeflection> areaHeatmap = new Dictionary<Coordinates, AreaDeflection>();
+        private static Dictionary<Coordinates, AreaDeflection> AreaHeatmap = new Dictionary<Coordinates, AreaDeflection>();
 
         private static double getLeastDistanceFromSetOfLinesUsingSql(Coordinates osmCoordinate, List<Coordinates> bingCoordinates)
         {
@@ -28,39 +27,38 @@ namespace OSM_Analysis
 
         private static void UpdateHeatmap(Dictionary<Coordinates, double> osmDistances)
         {
-            if (areaHeatmap.Count == 0)
+            if (AreaHeatmap.Count == 0)
             {
-                areaHeatmap = IntializeAreaHeatmap(MainClass.area);
+                AreaHeatmap = IntializeAreaHeatmap(MainClass.area);
             }
 
-            foreach (KeyValuePair<Coordinates, double> dist 
+            foreach (KeyValuePair<Coordinates, double> dist
                 in new HashSet<KeyValuePair<Coordinates, double>>(osmDistances))
             {
                 double lat = dist.Key.getLat();
                 double lon = dist.Key.getLon();
 
-                lat = Math.Ceiling(lat / 0.05) * 0.05;
-                lon = Math.Ceiling(lon / 0.05) * 0.05;
-                double[] coord = { lat, lon };
-                Coordinates cor = new Coordinates(coord, 1);
-                if (areaHeatmap.ContainsKey(cor))
+                lat = Math.Round(Math.Ceiling(lat / 0.05) * 0.05 * 100) / 100;
+                lon = Math.Round(Math.Ceiling(lon / 0.05) * 0.05 * 100) / 100;
+                Coordinates cor = new Coordinates(lat, lon, 1);
+                if (AreaHeatmap.ContainsKey(cor))
                 {
-                    AreaDeflection avgDef = areaHeatmap[cor];
+                    AreaDeflection avgDef = AreaHeatmap[cor];
                     int noOfPoints = avgDef.getNoOfPoints();
                     double avgDeflection = avgDef.getAvgDeflection();
                     avgDeflection = (avgDeflection * noOfPoints + dist.Value) / (noOfPoints + 1);
                     avgDef.setAvgDeflection(avgDeflection);
                     avgDef.setNoOfPoints(noOfPoints + 1);
-                    areaHeatmap.Add(cor, avgDef);
+                    AreaHeatmap[cor]= avgDef;
                 }
                 else
                 {
-                    // AreaDeflection avgDef = new AreaDeflection(new Area(Main.area, null, null), null, null, dist.getValue(), 1);
-                    // areaHeatmap.Add(cor, avgDef);
+                    AreaDeflection avgDef = new AreaDeflection(new Area(MainClass.area, null, null), null, null, dist.Value, 1);
+                    AreaHeatmap.Add(cor, avgDef);
                 }
             }
+            UpdateheatmapTable();
             Console.WriteLine("   Updated heatmap using " + osmDistances.Count + " points");
-            //updateheatmapTable();
         }
 
         internal static void doAnalysis(List<Coordinates> bingCoordinates, List<Coordinates> osmCoordinates)
@@ -119,8 +117,8 @@ namespace OSM_Analysis
                     AreaDefMap.Add(rangeUpper, avgDef);
                 }
             }
-            Console.WriteLine("   Updated average deflection using " + osmDistances.Count + " points");
             UpdateAvgDefTable();
+            Console.WriteLine("   Updated average deflection using " + osmDistances.Count + " points");
         }
 
         private static void UpdateAvgDefTable()
@@ -196,7 +194,7 @@ namespace OSM_Analysis
                             {
                                 int maxDefRange = reader.GetInt32(reader.GetOrdinal("MAX_DEF_RANGE"));
                                 areaDefMap.Add(maxDefRange, new AreaDeflection(new Area(reader.GetString(reader.GetOrdinal("CITY")), reader.GetString(reader.GetOrdinal("STATE")),
-                                        reader.GetString(reader.GetOrdinal("COUNTRY"))), maxDefRange, null, (double) reader.GetDecimal(reader.GetOrdinal("AVG_DEFLECTION")), reader.GetInt32(reader.GetOrdinal("DATASET_PTS_COUNT"))));
+                                        reader.GetString(reader.GetOrdinal("COUNTRY"))), maxDefRange, null, (double)reader.GetDecimal(reader.GetOrdinal("AVG_DEFLECTION")), reader.GetInt32(reader.GetOrdinal("DATASET_PTS_COUNT"))));
                             }
                         }
                     }
@@ -213,89 +211,84 @@ namespace OSM_Analysis
 
         private static void UpdateheatmapTable()
         {
-            /*
-            String city = Main.area;
-            String clearQuery = PropertiesReader.getString("clearPrevHeatmapEntries");
-            clearQuery = clearQuery.replace("<CITY>", city);
-            ConnectionUtils.executeJdbcQuery(clearQuery);
-
-            String insertQuery = "";
+            String city = MainClass.area;
+            String clearQuery = Properties.Settings.Default.ClearPrevHeatmapEntries;
+            clearQuery = clearQuery.Replace("<CITY>", city);
+            ConnectionUtils.ExecuteJdbcQuery(clearQuery);
             List<String> queries = new List<String>();
 
             // Display the TreeMap which is naturally sorted
             foreach (KeyValuePair<Coordinates, AreaDeflection> x
-                in new HashSet<KeyValuePair<Coordinates, AreaDeflection>>(areaHeatmap))
+                in new HashSet<KeyValuePair<Coordinates, AreaDeflection>>(AreaHeatmap))
             {
                 AreaDeflection areaDeflection = x.Value;
-                insertQuery = PropertiesReader.getString("heatMapInsertionQuery");
-                insertQuery = insertQuery.replace("<CITY>", city);
-                insertQuery = insertQuery.replace("<STATE>", "");
-                insertQuery = insertQuery.replace("<COUNTRY>", "");
-                insertQuery = insertQuery.replace("<LAT_MAX>", x.Key.getLat().ToString());
-                insertQuery = insertQuery.replace("<LONG_MAX>", x.Key.getLon().ToString());
-                insertQuery = insertQuery.replace("<DATASET_PTS_COUNT>", areaDeflection.getNoOfPoints().ToString());
-                queries.add(insertQuery);
+                string insertQuery = Properties.Settings.Default.HeatMapInsertionQuery;
+                insertQuery = insertQuery.Replace("<CITY>", city);
+                insertQuery = insertQuery.Replace("<STATE>", "");
+                insertQuery = insertQuery.Replace("<COUNTRY>", "");
+                insertQuery = insertQuery.Replace("<LAT_MAX>", x.Key.getLat().ToString());
+                insertQuery = insertQuery.Replace("<LONG_MAX>", x.Key.getLon().ToString());
+                insertQuery = insertQuery.Replace("<DATASET_PTS_COUNT>", areaDeflection.getNoOfPoints().ToString());
+                queries.Add(insertQuery);
             }
-            ConnectionUtils.executeJdbcBatchQuery(queries);
-            */
+            ConnectionUtils.ExecuteJdbcBatchQuery(queries);
         }
 
         private static Dictionary<Coordinates, AreaDeflection> IntializeAreaHeatmap(String areaStr)
         {
-            /*
-            Dictionary<Coordinates, AreaDeflection> areaHeatmap = 
+            Dictionary<Coordinates, AreaDeflection> AreaHeatmap =
                 new Dictionary<Coordinates, AreaDeflection>();
             Area area = new Area(areaStr);
-            Connection con = ConnectionUtils.getConnection();
-            String query = PropertiesReader.getString("heatmapSelectQuery");
+            String query = Properties.Settings.Default.HeatmapSelectQuery;
             if (area.getCity() != null)
             {
-                query = query.replace("<CITY>", area.getCity());
+                query = query.Replace("<CITY>", area.getCity());
             }
             else
             {
-                query = query.replace("CITY = '<CITY>'", "");
+                query = query.Replace("CITY = '<CITY>'", "");
             }
             if (area.getState() != null)
             {
-                query = query.replace("<STATE>", area.getState());
+                query = query.Replace("<STATE>", area.getState());
             }
             else
             {
-                query = query.replace(" and STATE = '<STATE>'", "");
+                query = query.Replace(" and STATE = '<STATE>'", "");
             }
             if (area.getCountry() != null)
             {
-                query = query.replace("<COUNTRY>", area.getCountry());
+                query = query.Replace("<COUNTRY>", area.getCountry());
             }
             else
             {
-                query = query.replace(" and COUNTRY = '<COUNTRY>'", "");
+                query = query.Replace(" and COUNTRY = '<COUNTRY>'", "");
             }
-
-            PreparedStatement ps = null;
             try
             {
-                ps = con.prepareStatement(query);
-                ResultSet rs = ps.executeQuery();
-                while (rs.next())
+                using (SqlConnection connection = new SqlConnection(Properties.Settings.Default.jdbcUrl))
                 {
-                    double[] coords = { rs.getDouble("LAT_MAX"), rs.getDouble("LONG_MAX") };
-                    Coordinates cor = new Coordinates(coords, 1);
-                    AreaDeflection areaDef = new AreaDeflection(area, null, null, rs.getDouble("AVG_DEFLECTION"), rs.getInt("DATASET_PTS_COUNT"));
-                    areaHeatmap.Add(cor, areaDef);
+                    connection.Open();
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Coordinates cor = new Coordinates((double)reader.GetDecimal(reader.GetOrdinal("LAT_MAX")), (double)reader.GetDecimal(reader.GetOrdinal("LONG_MAX")), 1);
+                                AreaDeflection areaDef = new AreaDeflection(area, null, null, (double)reader.GetDecimal(reader.GetOrdinal("AVG_DEFLECTION")), reader.GetInt32(reader.GetOrdinal("DATASET_PTS_COUNT")));
+                                AreaHeatmap.Add(cor, areaDef);
+                            }
+                        }
+                    }
+                    connection.Close();
                 }
-                rs.close();
-                con.close();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.StackTrace);
             }
-            return areaHeatmap;
-            */
-            return null;
-
+            return AreaHeatmap;
         }
     }
 }

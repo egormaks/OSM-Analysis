@@ -59,7 +59,6 @@ namespace OSM_Analysis
             using (SqlConnection connection = new SqlConnection(Properties.Settings.Default.jdbcUrl))
             {
                 connection.Open();
-                SqlBulkCopy objbulk = new SqlBulkCopy(connection);
                 foreach (String Query in Queries)
                 {
                     SqlCommand myCommand = new SqlCommand(Query, connection);
