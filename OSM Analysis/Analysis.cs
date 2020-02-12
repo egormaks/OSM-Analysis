@@ -61,7 +61,6 @@ namespace OSM_Analysis
 
         private static void updateHeatmap(Dictionary<Coordinates, double> osmDistances)
         {
-            /*
             if (osmDistances.Count == 0)
             {
                 areaHeatmap = intializeAreaHeatmap(Main.area);
@@ -95,12 +94,12 @@ namespace OSM_Analysis
             }
             Console.WriteLine("   Updated heatmap using " + osmDistances.Count + " points");
             updateheatmapTable();
-            */
+            
         }
 
         private static void updateheatmapTable()
         {
-            /*
+           
             String city = Main.area;
             String clearQuery = PropertiesReader.getString("clearPrevHeatmapEntries");
             clearQuery = clearQuery.replace("<CITY>", city);
@@ -124,12 +123,11 @@ namespace OSM_Analysis
                 queries.add(insertQuery);
             }
             ConnectionUtils.executeJdbcBatchQuery(queries);
-            */
+
         }
 
         private static Dictionary<Coordinates, AreaDeflection> intializeAreaHeatmap(String areaStr)
         {
-            /*
             Dictionary<Coordinates, AreaDeflection> areaHeatmap = 
                 new Dictionary<Coordinates, AreaDeflection>();
             Area area = new Area(areaStr);
@@ -180,8 +178,7 @@ namespace OSM_Analysis
                 Console.WriteLine(ex.StackTrace);
             }
             return areaHeatmap;
-            */
-            return null;
+
 
         }
     }
