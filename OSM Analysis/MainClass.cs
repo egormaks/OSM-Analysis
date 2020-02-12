@@ -13,6 +13,7 @@ namespace OSM_Analysis
         public static String area = "Seattle";
         private static List<Coordinates> bingCoordinates;
         private static List<Coordinates> osmCoordinates;
+        private static List<Coordinates> googleCoordinates;
 
         public static void Main(string[] args)
         {
@@ -78,7 +79,14 @@ namespace OSM_Analysis
 
             // TODO: Process Google API request
             {
-                //String goggleUrl = GetGoogleUrl();
+                String googleUrl = GetGoogleUrl();
+                String googleJson = GetJsonResponse(googleUrl);
+                Console.WriteLine(googleJson);
+                GoogleApiResponse googleObj = 
+                    Newtonsoft.Json.JsonConvert.DeserializeObject<GoogleApiResponse>(googleJson);
+                googleCoordinates = googleObj.GetGoogleCoordinates();
+
+
             }
             InsertNewCordinates(areaCoordinates);
             Analysis.doAnalysis(bingCoordinates, osmCoordinates);
@@ -114,15 +122,13 @@ namespace OSM_Analysis
             }
             Console.WriteLine("   Sucessfully inserted " + count + " new coordinates in " + area);
         }
-
+        
         private static string GetGoogleUrl()
         {
             GoogleRequestMessage message = new GoogleRequestMessage();
             List<Coordinates> route = new List<Coordinates>();
-            double[] startCoords = { 47.4642007, -122.2664857 };
-            double[] endCoords = { 47.2527802, -122.4442681 };
-            route.Add(new Coordinates(startCoords, 0));
-            route.Add(new Coordinates(endCoords, 0));
+            route.Add((Coordinates) bingCoordinates[0]);
+            route.Add((Coordinates) bingCoordinates[bingCoordinates.Count - 1]);
             message.setRouteCoords(route);
             message.setOutputFormat(OutputFormats.json);
             return message.generateGRequest();

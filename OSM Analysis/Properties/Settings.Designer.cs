@@ -43,7 +43,7 @@ namespace OSM_Analysis.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Server= localhost; Database= BingMaps")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Server= DESKTOP-OQ25EPJ\\LOCALDB#B598D17C; Database= OSM_Bing")]
         public string url {
             get {
                 return ((string)(this["url"]));
@@ -100,7 +100,8 @@ namespace OSM_Analysis.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Server= localhost; Database= BingMaps; User ID = mapsuser; Password=mapsuser")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Server= DESKTOP-OQ25EPJ\\LOCALDB#B598D17C; Database= OSM_Bing; User ID = mapsuser;" +
+            " Password=mapsuser")]
         public string jdbcUrl {
             get {
                 return ((string)(this["jdbcUrl"]));

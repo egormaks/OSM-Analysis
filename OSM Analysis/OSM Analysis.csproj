@@ -63,6 +63,7 @@
     <Compile Include="BingRequestMessage.cs" />
     <Compile Include="ConnectionUtils.cs" />
     <Compile Include="Coordinates.cs" />
+    <Compile Include="GoogleApiResponse.cs" />
     <Compile Include="GoogleRequestMessage.cs" />
     <Compile Include="MainClass.cs" />
     <Compile Include="OsmApiResponse.cs" />

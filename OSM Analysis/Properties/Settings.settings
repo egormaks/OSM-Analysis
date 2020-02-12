@@ -9,7 +9,7 @@
       <Value Profile="(Default)">mapsuser</Value>
     </Setting>
     <Setting Name="url" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Server= localhost; Database= BingMaps</Value>
+      <Value Profile="(Default)">Server= DESKTOP-OQ25EPJ\LOCALDB#B598D17C; Database= OSM_Bing</Value>
     </Setting>
     <Setting Name="noOfRuns" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
@@ -24,7 +24,7 @@
       <Value Profile="(Default)">SELECT * from COORDINATES where CITY = '&lt;AREA&gt;';</Value>
     </Setting>
     <Setting Name="jdbcUrl" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Server= localhost; Database= BingMaps; User ID = mapsuser; Password=mapsuser</Value>
+      <Value Profile="(Default)">Server= DESKTOP-OQ25EPJ\LOCALDB#B598D17C; Database= OSM_Bing; User ID = mapsuser; Password=mapsuser</Value>
     </Setting>
     <Setting Name="disQuery" Type="System.String" Scope="User">
       <Value Profile="(Default)">DECLARE @source geography = 'POINT(&lt;POINT1_COR&gt;)' DECLARE @target geography = 'POINT(&lt;POINT2_COR&gt;)' SELECT @source.STDistance(@target) as VALUE;</Value>
