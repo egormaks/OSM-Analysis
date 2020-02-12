@@ -1,0 +1,87 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="OSM_Analysis.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="username" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">mapsuser</Value>
+    </Setting>
+    <Setting Name="password" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">mapsuser</Value>
+    </Setting>
+    <Setting Name="url" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Server= localhost; Database= BingMaps</Value>
+    </Setting>
+    <Setting Name="noOfRuns" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="fromToMinDist" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5000</Value>
+    </Setting>
+    <Setting Name="tolerance" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">200</Value>
+    </Setting>
+    <Setting Name="areaSelectQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT * from COORDINATES where CITY = '&lt;AREA&gt;';</Value>
+    </Setting>
+    <Setting Name="jdbcUrl" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Server= localhost; Database= BingMaps; User ID = mapsuser; Password=mapsuser</Value>
+    </Setting>
+    <Setting Name="disQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DECLARE @source geography = 'POINT(&lt;POINT1_COR&gt;)' DECLARE @target geography = 'POINT(&lt;POINT2_COR&gt;)' SELECT @source.STDistance(@target) as VALUE;</Value>
+    </Setting>
+    <Setting Name="MinDistanceQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DECLARE @g geography; SET @g = geography::STGeomFromText('LINESTRING(&lt;CORDINATE_STRING&gt;)', 4326); DECLARE @source geography = 'POINT(&lt;OSM_POINT&gt;)';  SELECT @source.STDistance(@g) as VALUE;</Value>
+    </Setting>
+    <Setting Name="AreaDefQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Select * from AREA_DEF where CITY = '&lt;CITY&gt;' and STATE = '&lt;STATE&gt;' and COUNTRY = '&lt;COUNTRY&gt;' order by MAX_DEF_RANGE;</Value>
+    </Setting>
+    <Setting Name="ClearPrevAreaDefEntries" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DELETE from AREA_DEF where CITY = '&lt;CITY&gt;';</Value>
+    </Setting>
+    <Setting Name="AreaDefInsertQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">INSERT INTO AREA_DEF
+  ([CITY]
+  ,[STATE]
+  ,[COUNTRY]
+  ,[MAX_DEF_RANGE]
+  ,[AVG_DEFLECTION]
+  ,[DATASET_PTS_COUNT]) VALUES 
+  ('&lt;CITY&gt;'
+  ,'&lt;STATE&gt;'
+  ,'&lt;COUNTRY&gt;'
+  ,&lt;MAX_DEF_RANGE&gt;
+  ,&lt;AVG_DEFLECTION&gt;
+  ,&lt;DATASET_PTS_COUNT&gt;);</Value>
+    </Setting>
+    <Setting Name="HeatmapSelectQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Select * from HEATMAP where CITY = '&lt;CITY&gt;' and STATE = '&lt;STATE&gt;' and COUNTRY = '&lt;COUNTRY&gt;' ORDER BY LAT_MAX;</Value>
+    </Setting>
+    <Setting Name="HeatMapInsertionQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">INSERT INTO [HEATMAP]
+  ([CITY]
+  ,[STATE]
+  ,[COUNTRY]
+  ,[LAT_MAX]
+  ,[LONG_MAX]
+  ,[AVG_DEFLECTION]
+  ,[DATASET_PTS_COUNT])
+  VALUES
+  (&lt;CITY&gt;
+  ,&lt;STATE&gt;
+  ,&lt;COUNTRY&gt;
+  ,&lt;LAT_MAX&gt;
+  ,&lt;LONG_MAX&gt;
+  ,&lt;AVG_DEFLECTION&gt;
+  ,&lt;DATASET_PTS_COUNT&gt;)</Value>
+    </Setting>
+    <Setting Name="ClearPrevHeatmapEntries" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DELETE from HEATMAP where CITY = '&lt;CITY&gt;';</Value>
+    </Setting>
+    <Setting Name="Setting2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">asd</Value>
+    </Setting>
+    <Setting Name="InsertCoordinateQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">INSERT INTO COORDINATES ([CITY] ,[Lat] ,[Long] ,[Priority]) VALUES ('&lt;AREA&gt;', &lt;LAT&gt;, &lt;LON&gt; , 1)</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

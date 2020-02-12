@@ -25,7 +25,7 @@ namespace OSM_Analysis
         ferries,
         indoor
     }
-    class GoogleApiResponse
+    class GoogleRequestMessage
     {  
         private static readonly String API_KEY = "AIzaSyAioRxicWzq2ZrYzjjhejXp0QMW9FjdItA";
         private static readonly String HEADER = "https://maps.googleapis.com/maps/api/directions/";
