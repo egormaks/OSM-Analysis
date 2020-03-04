@@ -242,5 +242,58 @@ namespace OSM_Analysis.Properties {
                 this["InsertCoordinateQuery"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("DELETE from GOOGLE_HEATMAP where CITY = \'<CITY>\';")]
+        public string ClearPrevGoogleHeatmap {
+            get {
+                return ((string)(this["ClearPrevGoogleHeatmap"]));
+            }
+            set {
+                this["ClearPrevGoogleHeatmap"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"INSERT INTO [GOOGLE_HEATMAP]
+  ([CITY]
+  ,[STATE]
+  ,[COUNTRY]
+  ,[LAT_MAX]
+  ,[LONG_MAX]
+  ,[AVG_DEFLECTION]
+  ,[DATASET_PTS_COUNT])
+  VALUES
+  (<CITY>
+  ,<STATE>
+  ,<COUNTRY>
+  ,<LAT_MAX>
+  ,<LONG_MAX>
+  ,<AVG_DEFLECTION>
+  ,<DATASET_PTS_COUNT>)
+")]
+        public string GoogleHeatMapInsertionQuery {
+            get {
+                return ((string)(this["GoogleHeatMapInsertionQuery"]));
+            }
+            set {
+                this["GoogleHeatMapInsertionQuery"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Select * from GOOGLE_HEATMAP where CITY = \'<CITY>\' and STATE = \'<STATE>\' and COUN" +
+            "TRY = \'<COUNTRY>\' ORDER BY LAT_MAX;")]
+        public string GoogleHeatmapSelectQuery {
+            get {
+                return ((string)(this["GoogleHeatmapSelectQuery"]));
+            }
+            set {
+                this["GoogleHeatmapSelectQuery"] = value;
+            }
+        }
     }
 }

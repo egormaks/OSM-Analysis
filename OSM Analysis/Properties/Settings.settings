@@ -83,5 +83,30 @@
     <Setting Name="InsertCoordinateQuery" Type="System.String" Scope="User">
       <Value Profile="(Default)">INSERT INTO COORDINATES ([CITY] ,[Lat] ,[Long] ,[Priority]) VALUES ('&lt;AREA&gt;', &lt;LAT&gt;, &lt;LON&gt; , 1)</Value>
     </Setting>
+    <Setting Name="ClearPrevGoogleHeatmap" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DELETE from GOOGLE_HEATMAP where CITY = '&lt;CITY&gt;';</Value>
+    </Setting>
+    <Setting Name="GoogleHeatMapInsertionQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">INSERT INTO [GOOGLE_HEATMAP]
+  ([CITY]
+  ,[STATE]
+  ,[COUNTRY]
+  ,[LAT_MAX]
+  ,[LONG_MAX]
+  ,[AVG_DEFLECTION]
+  ,[DATASET_PTS_COUNT])
+  VALUES
+  (&lt;CITY&gt;
+  ,&lt;STATE&gt;
+  ,&lt;COUNTRY&gt;
+  ,&lt;LAT_MAX&gt;
+  ,&lt;LONG_MAX&gt;
+  ,&lt;AVG_DEFLECTION&gt;
+  ,&lt;DATASET_PTS_COUNT&gt;)
+</Value>
+    </Setting>
+    <Setting Name="GoogleHeatmapSelectQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Select * from GOOGLE_HEATMAP where CITY = '&lt;CITY&gt;' and STATE = '&lt;STATE&gt;' and COUNTRY = '&lt;COUNTRY&gt;' ORDER BY LAT_MAX;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

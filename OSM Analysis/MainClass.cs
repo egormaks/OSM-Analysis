@@ -90,6 +90,7 @@ namespace OSM_Analysis
             }
             InsertNewCordinates(areaCoordinates);
             Analysis.doAnalysis(bingCoordinates, osmCoordinates);
+            Analysis.doGoogleAnalysis(googleCoordinates, osmCoordinates);
 
         }
 

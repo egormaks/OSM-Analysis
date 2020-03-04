@@ -25,6 +25,41 @@ namespace OSM_Analysis
             return ConnectionUtils.ExecuteJdbcSingleOutputQuery(query);
         }
 
+        private static void UpdateGoogleHeatmap(Dictionary<Coordinates, double> googleDistances)
+        {
+            if (AreaHeatmap.Count == 0)
+            {
+                AreaHeatmap = IntializeAreaHeatmap(MainClass.area);
+            }
+
+            foreach (KeyValuePair<Coordinates, double> dist
+                in new HashSet<KeyValuePair<Coordinates, double>>(googleDistances))
+            {
+                double lat = dist.Key.getLat();
+                double lon = dist.Key.getLon();
+
+                lat = Math.Round(Math.Ceiling(lat / 0.05) * 0.05 * 100) / 100;
+                lon = Math.Round(Math.Ceiling(lon / 0.05) * 0.05 * 100) / 100;
+                Coordinates cor = new Coordinates(lat, lon, 1);
+                if (AreaHeatmap.ContainsKey(cor))
+                {
+                    AreaDeflection avgDef = AreaHeatmap[cor];
+                    int noOfPoints = avgDef.getNoOfPoints();
+                    double avgDeflection = avgDef.getAvgDeflection();
+                    avgDeflection = (avgDeflection * noOfPoints + dist.Value) / (noOfPoints + 1);
+                    avgDef.setAvgDeflection(avgDeflection);
+                    avgDef.setNoOfPoints(noOfPoints + 1);
+                    AreaHeatmap[cor] = avgDef;
+                }
+                else
+                {
+                    AreaDeflection avgDef = new AreaDeflection(new Area(MainClass.area, null, null), null, null, dist.Value, 1);
+                    AreaHeatmap.Add(cor, avgDef);
+                }
+            }
+            UpdateGoogleHeatmapTable();
+            Console.WriteLine("   Updated heatmap using " + googleDistances.Count + " points");
+        }
         private static void UpdateHeatmap(Dictionary<Coordinates, double> osmDistances)
         {
             if (AreaHeatmap.Count == 0)
@@ -64,11 +99,17 @@ namespace OSM_Analysis
         internal static void doAnalysis(List<Coordinates> bingCoordinates, List<Coordinates> osmCoordinates)
         {
             // each pair of adjacent points in Bing are connected through a line and the minimum distance is calculated for each point on OSM
-            GetDeflectionBasedOnLineSegments(bingCoordinates, osmCoordinates);
+            GetDeflectionBasedOnLineSegments(bingCoordinates, osmCoordinates, false);
+        }
+
+        internal static void doGoogleAnalysis(List<Coordinates> googleCoordinates, List<Coordinates> osmCoordinates)
+        {
+            // each pair of adjacent points in Google are connected through a line and the minimum distance is calculated for each point on OSM
+            GetDeflectionBasedOnLineSegments(googleCoordinates, osmCoordinates, true);
         }
 
         //for each osm point im checking the minimum distance to the bing curve to make sure it is less than a specified tolerance, using SQL
-        private static void GetDeflectionBasedOnLineSegments(List<Coordinates> bingCoordinates, List<Coordinates> osmCoordinates)
+        private static void GetDeflectionBasedOnLineSegments(List<Coordinates> bingCoordinates, List<Coordinates> osmCoordinates, bool isGoogleAnalysis)
         {
             Dictionary<Coordinates, Double> osmDistancesMap = new Dictionary<Coordinates, Double>();
             int count = 0;
@@ -87,8 +128,14 @@ namespace OSM_Analysis
                     //      System.out.println("deflection for " + count + "th element " + osmCoordinate.getLat() + ", " + osmCoordinate.getLat() + " with distance " + dist1 + " is skipped");
                 }
             }
-            UpdateAvgDeflection(osmDistancesMap.Values);
-            UpdateHeatmap(osmDistancesMap);
+            if (!isGoogleAnalysis)
+            {
+                UpdateAvgDeflection(osmDistancesMap.Values);
+                UpdateHeatmap(osmDistancesMap);
+            } else {
+                UpdateAvgDeflection(osmDistancesMap.Values);
+                UpdateGoogleHeatmap(osmDistancesMap);
+            }
         }
 
         private static void UpdateAvgDeflection(Dictionary<Coordinates, double>.ValueCollection osmDistances)
@@ -234,12 +281,37 @@ namespace OSM_Analysis
             ConnectionUtils.ExecuteJdbcBatchQuery(queries);
         }
 
+        private static void UpdateGoogleHeatmapTable()
+        {
+            String city = MainClass.area;
+            String clearQuery = Properties.Settings.Default.ClearPrevGoogleHeatmap;
+            clearQuery = clearQuery.Replace("<CITY>", city);
+            ConnectionUtils.ExecuteJdbcQuery(clearQuery);
+            List<String> queries = new List<String>();
+
+            // Display the TreeMap which is naturally sorted
+            foreach (KeyValuePair<Coordinates, AreaDeflection> x
+                in new HashSet<KeyValuePair<Coordinates, AreaDeflection>>(AreaHeatmap))
+            {
+                AreaDeflection areaDeflection = x.Value;
+                string insertQuery = Properties.Settings.Default.GoogleHeatMapInsertionQuery;
+                insertQuery = insertQuery.Replace("<CITY>", city);
+                insertQuery = insertQuery.Replace("<STATE>", "");
+                insertQuery = insertQuery.Replace("<COUNTRY>", "");
+                insertQuery = insertQuery.Replace("<LAT_MAX>", x.Key.getLat().ToString());
+                insertQuery = insertQuery.Replace("<LONG_MAX>", x.Key.getLon().ToString());
+                insertQuery = insertQuery.Replace("<DATASET_PTS_COUNT>", areaDeflection.getNoOfPoints().ToString());
+                queries.Add(insertQuery);
+            }
+            ConnectionUtils.ExecuteJdbcBatchQuery(queries);
+        }
+
         private static Dictionary<Coordinates, AreaDeflection> IntializeAreaHeatmap(String areaStr)
         {
             Dictionary<Coordinates, AreaDeflection> AreaHeatmap =
                 new Dictionary<Coordinates, AreaDeflection>();
             Area area = new Area(areaStr);
-            String query = Properties.Settings.Default.HeatmapSelectQuery;
+            String query = Properties.Settings.Default.GoogleHeatmapSelectQuery;
             if (area.getCity() != null)
             {
                 query = query.Replace("<CITY>", area.getCity());
